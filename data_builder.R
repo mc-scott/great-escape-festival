@@ -162,9 +162,7 @@ while (TRUE) {
     next_artist <- get_next_artist(artist)
     
     # break if we've cycled round to the first artists
-    if (next_artist == artist1) {
-        break
-    }
+    if (next_artist == artist1) break
     
     # append rows to pre-defined cols
     timetable_df <- timetable_df |> add_row(
@@ -272,9 +270,8 @@ next_res <- ge_res$`next`
 
 while (TRUE) {
     # if no more to batches, break loop
-    if (is.null(next_res)){
-        break
-    }
+    if (is.null(next_res)) break
+    
     # get the next batch of songs from playlist
     this_res <- get_spotify_details(url_string = next_res)
     
@@ -365,6 +362,6 @@ c("gigs",
   "spotify_genres",
   "my_songs") |> 
     walk(function(x){
-        saveRDS(get(x), paste0("SpotifyGreatEscape/Data/RDS/", x, ".rds"))
-        write.csv(get(x), paste0("SpotifyGreatEscape/Data/CSV/", x, ".csv"), row.names = FALSE)
+        saveRDS(get(x), paste0("Data/RDS/", x, ".rds"))
+        write.csv(get(x), paste0("Data/CSV/", x, ".csv"), row.names = FALSE)
     })
