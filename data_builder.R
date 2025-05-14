@@ -48,6 +48,7 @@ while (TRUE) {
         ge_artist = artist_name(next_artist),
         artist_from = artist_from(next_artist),
         artist_blurb = artist_blurb(next_artist),
+        num_events = num_events(artist1),
         event_venues = event_venues(next_artist),
         event_times = event_times(next_artist),
         url = next_artist
