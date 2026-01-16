@@ -35,10 +35,19 @@ artist_name <- function(html_doc){
 ## artist location
 artist_from <- function(html_doc){
     html_doc |>
-        html_element(xpath = '/html/body/div[2]/div/div/div/article/h2') |>
+        html_element(".country-container:nth-child(1)") |>
         html_text() |>
         as.character() |>
         str_sub(2, -2) # remove first '(' and last ')'characters
+}
+
+## artist genre
+artist_genre <- function(html_doc){
+    html_doc |>
+        html_element(".country-container:nth-child(2)") |>
+        html_text() |>
+        as.character() |>
+        str_sub(2, -2) # remove first '(' and last ')'characters    
 }
 
 # get venues and times
@@ -81,8 +90,9 @@ event_times <- function(html_doc) {
 
 artist_blurb <- function(html_doc) {
     html_doc |>
-        html_element(xpath = '/html/body/div[2]/div/div/div/article/div[2]/p') |>
-        html_text()
+        html_element(".cont") |>
+        html_text(trim = TRUE) |> 
+        str_remove_all("\r|\n")
 }
 
 # create artist key

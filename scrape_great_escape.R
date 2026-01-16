@@ -11,13 +11,14 @@ scrape_great_escape <- function() {
     # first artist ----
 
     # create df with first artist
-    artist1_url <- "https://greatescapefestival.com/artists/76/"
+    artist1_url <- "https://greatescapefestival.com/artists/aint/"
 
     # download HTML once and extract all data from the parsed document
     artist1_doc <- download_artist_page(artist1_url)
 
     timetable_df <- tibble(
         ge_artist = artist_name(artist1_doc),
+        artist_genre = artist_genre(artist1_doc),
         artist_from = artist_from(artist1_doc),
         artist_blurb = artist_blurb(artist1_doc),
         num_events = num_events(artist1_doc),
@@ -49,6 +50,7 @@ scrape_great_escape <- function() {
         # append rows to pre-defined cols
         timetable_df <- timetable_df |> add_row(
             ge_artist = artist_name(next_artist_doc),
+            artist_genre = artist_genre(next_artist_doc),
             artist_from = artist_from(next_artist_doc),
             artist_blurb = artist_blurb(next_artist_doc),
             num_events = num_events(next_artist_doc),
