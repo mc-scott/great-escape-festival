@@ -9,79 +9,80 @@ library(purrr)
 
 safe_read_html <- safely(read_html, otherwise = minimal_html("None"))
 
+# download artist page HTML to tempfile and return parsed document
+download_artist_page <- function(artist_url) {
+    temp_file <- tempfile(fileext = ".html")
+    download.file(artist_url, temp_file, quiet = TRUE)
+    read_html(temp_file)
+}
+
 # get next artist URL from 'next' chevron on page
-get_next_artist <- function(artist_url){
-    read_html(artist_url) |> 
-        html_elements(".chev-right") |> 
-        html_attr("href")  
+get_next_artist <- function(html_doc){
+    html_doc |>
+        html_elements(".chev-right") |>
+        html_attr("href")
 }
 
 # get artist details from page
 
 ## name
-artist_name <- function(artist_url){
-    read_html(artist_url) |> 
-        html_element(".article__title--single") |> 
-        html_text() 
+artist_name <- function(html_doc){
+    html_doc |>
+        html_element(".article__title--single") |>
+        html_text()
 }
 
 ## artist location
-artist_from <- function(artist_url){
-    read_html(artist_url) |>
+artist_from <- function(html_doc){
+    html_doc |>
         html_element(xpath = '/html/body/div[2]/div/div/div/article/h2') |>
-        html_text() |> 
-        as.character() |> 
+        html_text() |>
+        as.character() |>
         str_sub(2, -2) # remove first '(' and last ')'characters
 }
 
 # get venues and times
 
 ## NOTE: an artist can have multiple gigs, need to loop through all
-num_events <- function(artist_url){
-    read_html(artist_url) |>
-        html_elements(css = "div.event") |> 
+num_events <- function(html_doc){
+    html_doc |>
+        html_elements(css = "div.event") |>
         length()
 }
 
-event_venues <- function(artist_url) {
+event_venues <- function(html_doc) {
     # get number of rows in event grid
-    num_events <- num_events(artist_url)    
-    # clear variable
-    venues = "NA"
-    # loop through rows in event grid, finding artist venue
-    for (x in 1:num_events) {
-        venue <- read_html(artist_url) |>
-            html_element(xpath = paste0('/html/body/div[2]/div/div/div/article/div/div[', x+1, ']/div/a')) |> 
+    n_events <- num_events(html_doc)
+    if (n_events == 0) return("NA")
+    # extract all venues from the parsed document
+    venues <- sapply(1:n_events, function(x) {
+        html_doc |>
+            html_element(xpath = paste0('/html/body/div[2]/div/div/div/article/div/div[', x+1, ']/div/a')) |>
             html_attr("title")
-        venues <- paste(venues, venue, sep = ", ")
-        venues <- str_remove(venues, "NA, ")
-    }
-    return(venues)
+    })
+    paste(venues, collapse = ", ")
 }
 
-event_times <- function(artist_url) {
+event_times <- function(html_doc) {
     # get number of rows in events grid
-    num_events <- num_events(artist_url)
-    # clear variable
-    times = "NA"
-    # loop through html elements in event grid, finding gig times
-    for (x in 1:num_events) {
-        event_time <- read_html(artist_url) |>
+    n_events <- num_events(html_doc)
+    if (n_events == 0) return("NA")
+    # extract all times from the parsed document
+    times <- sapply(1:n_events, function(x) {
+        html_doc |>
             html_element(xpath = paste0('/html/body/div[2]/div[1]/div/div/article/div/div[', x+1, ']/div[2]')) |>
-            html_text2() |> 
+            html_text2() |>
             str_remove("\r ")
-        times <- paste(times, event_time, sep = ", ")
-        times <- str_remove(times, "NA, ")
-    }
-    return(times)
+    })
+    paste(times, collapse = ", ")
 }
 
 # get blurb
 
-artist_blurb <- function(artist_url) {
-    read_html(artist_url) |>
-        html_element(xpath = '/html/body/div[2]/div/div/div/article/div[2]/p') |> 
-        html_text()       
+artist_blurb <- function(html_doc) {
+    html_doc |>
+        html_element(xpath = '/html/body/div[2]/div/div/div/article/div[2]/p') |>
+        html_text()
 }
 
 # create artist key

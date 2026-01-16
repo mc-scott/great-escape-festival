@@ -12,16 +12,20 @@ client_secret <- yaml.load_file("credentials.yml")$client_secret
 ## first artist ----
 
 # create df with first artist
-artist1 <- "https://greatescapefestival.com/artists/76/"
+artist1_url <- "https://greatescapefestival.com/artists/76/"
+
+# download HTML once and extract all data from the parsed document
+artist1_doc <- download_artist_page(artist1_url)
 
 timetable_df <- tibble(
-    ge_artist = artist_name(artist1),
-    artist_from = artist_from(artist1),
-    artist_blurb = artist_blurb(artist1),
-    num_events = num_events(artist1),
-    event_venues = event_venues(artist1),
-    event_times = event_times(artist1),
-    url = artist1
+    ge_artist = artist_name(artist1_doc),
+    artist_from = artist_from(artist1_doc),
+    artist_blurb = artist_blurb(artist1_doc),
+    num_events = num_events(artist1_doc),
+    event_venues = event_venues(artist1_doc),
+    event_times = event_times(artist1_doc),
+    url = artist1_url,
+    next_url = get_next_artist(artist1_doc)
 )
 
 # run a loop getting artist info and then moving to the next page
@@ -32,30 +36,31 @@ timetable_df <- tibble(
 x <- 1
 
 while (TRUE) {
-    
-    # get the next artist URL by querying last row of table url column
-    artist <- slice_tail(timetable_df, n = 1) |> 
-        select(url) |> 
-        as.character()
-    
-    next_artist <- get_next_artist(artist)
-    
-    # break if we've cycled round to the first artists
-    if (next_artist == artist1) break
-    
+
+    # get the next artist URL from the last row
+    next_artist_url <- slice_tail(timetable_df, n = 1) |>
+        pull(next_url)
+
+    # break if we've cycled round to the first artist
+    if (next_artist_url == artist1_url) break
+
+    # download HTML once and extract all data from the parsed document
+    next_artist_doc <- download_artist_page(next_artist_url)
+
     # append rows to pre-defined cols
     timetable_df <- timetable_df |> add_row(
-        ge_artist = artist_name(next_artist),
-        artist_from = artist_from(next_artist),
-        artist_blurb = artist_blurb(next_artist),
-        num_events = num_events(artist1),
-        event_venues = event_venues(next_artist),
-        event_times = event_times(next_artist),
-        url = next_artist
+        ge_artist = artist_name(next_artist_doc),
+        artist_from = artist_from(next_artist_doc),
+        artist_blurb = artist_blurb(next_artist_doc),
+        num_events = num_events(next_artist_doc),
+        event_venues = event_venues(next_artist_doc),
+        event_times = event_times(next_artist_doc),
+        url = next_artist_url,
+        next_url = get_next_artist(next_artist_doc)
     )
-    
-    print(paste(x, ": ", artist))
-    
+
+    print(paste(x, ": ", next_artist_url))
+
     x <- x + 1
 }
 
