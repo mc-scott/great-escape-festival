@@ -101,7 +101,7 @@ scrape_great_escape <- function() {
 
     # create artists dimension
     artists <- timetable |>
-        select(artist_key, ge_artist, artist_from, artist_blurb)
+        select(artist_key, ge_artist, artist_genre, artist_from, artist_blurb)
 
     # create venues dimension
     venues <- gigs |>

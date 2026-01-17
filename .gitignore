@@ -49,6 +49,6 @@ po/*~
 rsconnect/
 
 *.rds
-*.csv
 credentials.yml
-*.pbix
+*.sqlite
+**/CLAUDE*.md

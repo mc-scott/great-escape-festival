@@ -3,6 +3,8 @@
 # Coordinates web scraping and Spotify API data fetching
 
 library(yaml)
+library(DBI)
+library(RSQLite)
 
 # Source component scripts
 source("scrape_great_escape.R")
@@ -40,17 +42,24 @@ my_songs <- spotify_data$my_songs
 # Save files ----
 message("\nStep 3: Saving output files...")
 
-c("gigs",
-  "artist_details",
-  "timetable",
-  "venues",
-  "artist_from",
-  "spotify_playlist",
-  "spotify_genres",
-  "my_songs") |>
-    walk(function(x){
-        saveRDS(get(x), paste0("Data/RDS/", x, ".rds"))
-        write.csv(get(x), paste0("Data/CSV/", x, ".csv"), row.names = FALSE)
-    })
+# Create SQLite database
+db_path <- "db.sqlite"
 
-message("\nPipeline complete! All files saved to Data/RDS/ and Data/CSV/")
+# Connect to database (creates file if it doesn't exist)
+con <- dbConnect(RSQLite::SQLite(), db_path)
+
+# Write each table to the database
+tables <- 
+    c("gigs",
+      "artists",
+      "timetable",
+      "venues") |>
+    walk(function(tbl){
+        dbWriteTable(con, tbl, get(tbl), overwrite = TRUE)
+        message(sprintf("  Saved table: %s", tbl))
+        })
+
+# Disconnect from database
+dbDisconnect(con)
+
+message(sprintf("\nPipeline complete! Database saved to %s", db_path))
